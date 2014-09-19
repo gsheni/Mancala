@@ -5,6 +5,7 @@ This is a Mancala game that allows a human to play against an intelligent comput
 The computer chooses its moves using a minimax lookahead and alpha-beta pruning. 
 
 Rules of Mancala:
+
 • Object:  Two players compete against each other trying to get as many stones as possible before one of the players clears his or her side of all its stones.
 
 • Set Up:  The players sit facing each other with the board between them.  Each player is allocated the row of bins closest to him or her and a larger scoring bin, called a mancala, to the right.  Four stones are placed in each of the 12 smaller bins.  The players decide who goes first by flipping a coin.

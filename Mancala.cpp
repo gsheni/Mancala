@@ -1,7 +1,5 @@
 /*
  * Gaurav Sheni
- * CSC 371
- * Mancala - Program 1
  * September 9, 2014
  */
 #include <iostream>

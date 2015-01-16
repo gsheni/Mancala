@@ -10,6 +10,7 @@
 #include <limits.h> // for int max and int min
 #define MIN 1
 #define MAX 0
+//#define PRINT //for fun
 #include <ctime>
 #include <cmath>
 #include <stdio.h>
@@ -60,8 +61,9 @@ int main(){
 	}
 	int maxDepth = 2;// how deep the searching for the best move should go.
 	cout << "What would you like the depth to be?"<< endl;
+	cout << "Might I suggest 4 or 5?"<< endl;
 	cin >> maxDepth;
-	while(maxDepth <= 0){ //make sure input for maxdepth is a valid number.
+	while(maxDepth <= 0 ){ //make sure input for maxdepth is a valid number.
 		cout << "Please select a value greater than 0 and less than 11." << endl;
 		cin >> maxDepth;
 	}
@@ -71,7 +73,6 @@ int main(){
 	bool onlyone = false; // to see if there is only one move possible.
 	bool doesntmatter = false;//not important for takingthemove, but used in eval function.
 	int one;//incase there is only one move, this is to store the location of that one move.
-	printboard(board);
 	while (!gameOver){
 
 		if (turn == MIN){// computer move
@@ -98,7 +99,8 @@ int main(){
 			}
 		}
 		else{ //human move.
-			cout << "Human moved" << endl;
+			cout << "Your Move" << endl;
+			printboard(board);
 			choiceofmove = askforselection(board); //prompt user for legal move
 			doesntmatter = takeMove(board,choiceofmove,MIN);
 			printboard(board); //print the board.
@@ -110,7 +112,6 @@ int main(){
 				turn = 1;
 			}
 		}
-		gameOver=checkboard(board);
 	}
 	cout << "Game is over" << endl;
 	if (board[6] > board[13]){
@@ -156,14 +157,6 @@ bool takeMove(int board[], int choice, int minOrmax){
 				next = 7;//since we are avoiding 6, the next bin is 7
 			}
 		}
-		//bug testing below
-		//cout << "let me know" << endl;
-		//cin >> s;
-		//printboard(board);
-		//cout << "next was " << next << endl;
-		//cout << "board[next] is now " << board[next] << endl;
-		//cout << "picked was " << picked << endl;
-		//bug testing above
 		int currentinnext = board[next]; //get the current number of marbles in the next bin to be added 1
 		board[next] = currentinnext + 1 ; // add one to the value of the marbles in the next bin
 		int test = picked - 1; //to see if there will be no more marbles left to drop.
@@ -185,12 +178,6 @@ bool takeMove(int board[], int choice, int minOrmax){
 			}
 		}
 	}
-	//string s;
-	//cout << "wait" << endl;
-	//cin >> s;
-	//cout << "next was " << next << endl;
-	//cout << "board[next] is now " << board[next] << endl;
-	//cout << "picked was " << picked << endl;
 	int ending = next-1;// location of ending bin
 	if (ending == -1){ // incase it ends after looping array
 		ending = 13;
@@ -207,9 +194,6 @@ bool takeMove(int board[], int choice, int minOrmax){
 	if (MIN == minOrmax){//Increment ending to be used later
 		ending = ending + 1; //for human
 	}
-	//string s;
-	//cout << "ending is " << ending << endl;
-	//cin >> s;
 	if(ending != 13 || ending != 6){ // make sure that it doesn't find across if landed in mancala
 
 		if (MIN == minOrmax && board[ending] == 1 && ending > -1 && ending < 6){ // for human
@@ -249,24 +233,27 @@ Move minmax(int board[], int d, int maxD, int minOrMax, int alpha, int beta) {
 	int board2[14];//no need to fill board with values, will be changed later on
 	bool check;//for checking if one side is empty
 	bool doesntmatter;//return bool from takemove, for eval function and doens't matter here.
-	check = checkboard(board);//check if one side ie emtpy.
+	check = checkboard(board);//check if one side is emtpy.
+#ifdef PRINT
+	cout << "Currently at depth of " << d << endl;
+#endif
 	if (check){ //if (one side has all empty bins)
 		//return INT_MAX as the score if MAX is playing and INT_MIN if MIN is playing; bin number not important
 		if (MIN == minOrMax){ // Computer is playing
 			m.score = INT_MIN;
-			cout << "just set m.score to INT_MIN " << endl;
 			m.binNum = -1; //not important.
 			return m;
 		}
 		else if (MAX == minOrMax){
 			m.score = INT_MAX;
-			cout << "just set m.score to INT_MAX " << endl;
 			m.binNum = -1; //not important
 			return m;
 		}
 	}
 	else  if (d == maxD)  {
-		cout << "at the max depth of "<< d << " evaluating now." << endl;
+#ifdef PRINT
+		cout << "At the max depth of "<< d << " so, evaluating now." << endl;
+#endif
 		m.score = evalFunction(board, minOrMax); //evaluate the current board state and give a score.
 		m.binNum = -1; //doesnt matter
 		//return a struct with the score; bin number not important
@@ -275,8 +262,6 @@ Move minmax(int board[], int d, int maxD, int minOrMax, int alpha, int beta) {
 	else {
 		if (minOrMax == MIN) { // MINIMizing player
 			m.score= INT_MAX;
-			//cout << "Set m.score to INT_MAX" << endl;
-			//cout << "Currently at MIN level" << endl;
 			m.binNum = -1;
 			for (int i = 0; i <= 5; i++) { //user turn so only go through 6 bins on user side.
 				if (board[i] != 0) {
@@ -285,21 +270,27 @@ Move minmax(int board[], int d, int maxD, int minOrMax, int alpha, int beta) {
 					for(int j = 0; j < 14 ; j++){
 						board2[j] = board[j];
 					}
-					//cout << "changing the board state" << endl;
 					doesntmatter = takeMove(board, i, minOrMax);  //change board state to next tentative move
-					///////////
+#ifdef PRINT
+					cout << "MIN is recursively calling minmax, with an alpha of " << alpha << " and m.score (beta) of " << m.score << endl;
+#endif
 					mTemp = minmax(board, d+1, maxD, MAX, alpha, m.score); //recursive call minmax with m.score(as beta) and alpha
-					if( m.score < alpha){  //if m.score is less than alpha
-						cout << "ALPHA cutting off, BREAKING, at MIN" << endl; //no need to search any further
+					if( m.score <= alpha){  //if m.score is less than alpha
+#ifdef PRINT
+						cout << "m.score, which is " << m.score <<" is less than or equal to alpha, which is " << alpha << endl;
+						cout << "**********So ALPHA cutting off, PRUNING, at MIN*********" << endl; //no need to search any further
+#endif
 						break; //so break out of for loop
 					}
 					if (mTemp.score < m.score) { //
-						cout << "changing temp score for MIN " << endl;
+#ifdef PRINT
+						cout << "m.score, which is " << m.score <<" is greater than mTemp.score, which is " << mTemp.score << endl;
+						cout << "Setting a new BIN number to " << i << endl;
+#endif
 						m.score = mTemp.score; //if the found score it less than the kept score, so update score kept.
 						m.binNum = i; //bin number will be current index
 						//less than because trying to minimize
 					}
-					//////////
 
 					//copy board2 back into board
 					for(int k = 0; k < 14 ; k++){
@@ -314,26 +305,28 @@ Move minmax(int board[], int d, int maxD, int minOrMax, int alpha, int beta) {
 			//Do this the same way as the previous case, changing the necessary variables and values to make it the flip-side, logically
 			m.score = INT_MIN;
 			m.binNum = -1;
-			//cout << "Set m.score to INT_MIN" << endl;
-			//cout << "Currently at MAX level" << endl;
 			for (int i = 7; i <= 12; i++) {//comp turn so only go through 6 bins on user side.
 				if (board[i] != 0) {
-					//cout << "went into if loop to check if board[i] !=0"<< endl;
-					//Copy board into board2
-					//for loop to copy board
 					for(int j = 0; j < 14 ; j++){
 						board2[j] = board[j];
 					}
 					doesntmatter = takeMove(board, i, minOrMax);  //change board state to next tentative move
-
-					///////////
+#ifdef PRINT
+					cout << "MAX is recursively calling minmax, with an beta of " << beta << " and m.score (alpha) of " << m.score << endl;
+#endif
 					mTemp = minmax(board, d+1, maxD, MIN, m.score, beta); //recursive call minmax with m.score(as alpha) and beta
 					if(m.score > beta){
-						cout << "BETA cutting off, BREAKING, at MAX" << endl; //no need to search any further
+#ifdef PRINT
+						cout << "m.score, which is " << m.score <<" is greater than beta, which is " << beta << endl;
+						cout << "**********BETA cutting off, PRUNING, at MAX*********" << endl; //no need to search any further
+#endif
 						break; //so break out of for loop
 					}
-					if (mTemp.score > m.score) {
-						cout << "changing temp score for MIN " << endl;
+					if (mTemp.score >= m.score) {
+#ifdef PRINT
+						cout << "m.score, which is " << m.score <<" is less than or equal to mTemp.score, which is " << mTemp.score << endl;
+						cout << "Setting a new BIN number to " << i << endl;
+#endif
 						m.score = mTemp.score;//if the found score it greater than the kept score, so update score kept.
 						m.binNum = i;//bin number will be current index
 						//greater than because trying to maximize
@@ -356,56 +349,49 @@ int computerChooseMove(int board[], int maxD)
 	Move m;
 	int alpha = INT_MIN; // alpha = -infinity, from book for initial call
 	int beta = INT_MAX; // beta = infinity, from book for initial call
+#ifdef PRINT
 	cout << "Initial Call for minmax just occurred" << endl;
+#endif
 	m = minmax(board, 0, maxD, MAX, alpha, beta); //initial call
-	int i = checkform(board, m.binNum); //this function checks if the computer made a valid move, return the valid move it made one.
-	if(i==0){//see if valid move from comp or not
-		cout << "error" << endl;
-	}
-	return i; //found the value of best bin
-}
-int checkfrom(int board[], int choice){
-	if(board[choice] == 0 || choice > 12 || choice < 7){
-		cout << "error is occurring" << endl;
-		return 0;}
-	return choice;
+	return m.binNum; //found the value of best bin
 }
 
-
-int evalFunction(int board[], int minOrMax){
-	int valueofboard;
+int evalFunction(int board[], int minOrMax){ //minORMax arent really needed since we are using evalfunction to benefit comp
 	int board2[14];//for getting value lets copy board so it isn't messed up.
 	bool checkempty;//check if it results in an empty bin location, if so then add the value of that.
 	for(int j = 0; j < 14 ; j++){
 		board2[j] = board[j]; //copy board 2
 	}
 	//get all the pieces on the human side, including mancala
-	int humanside = board[0] + board[1] + board[2] + board[3] + board[4] + board[5] + board[6];
+	float humanside = (board[0] + board[1] + board[2] + board[3] + board[4] + board[5])*0.45; //multiply by a constant
+	//I am multiplying by 0.45 because it gives more variation.
+	//this is also why floating point numbers are used, later converted to an int
+	float humanmancala = (board[6]) * 3.45; //multiple by a higher constant because these are guaranteed pieces, since in mancala already
+	float human = humanside + humanmancala; // find total for human pieces
 	//get all the pieces on the comp side, including mancala
-	int compside = board[7] + board[8] + board[9] + board[10] + board[11] + board[12] + board[13];
-	//find the difference between the two, negative doesn't make a difference.
-	int difference_board = compside - humanside;
-	valueofboard =  difference_board;
-	if(MIN == minOrMax){ // user
-			for (int i = 0; i <= 5; i++) { //for each possible move for human
-			checkempty = takeMove(board2, i, minOrMax); //see if you can land in an empty bin
-				if(checkempty){ //if you can land in an empty bin
-					int acrosslocation = findacross(i); //find the location of that
-					int acrosspieces = board2[acrosslocation]; //find how many pieces are across
-					//add the number of pieces across plus the one on your side to the vale of the board
-					valueofboard = valueofboard + ((acrosspieces + 1)* -1);//since we want the comp to not have to go to this state, we multiple by -1
-				}
-			}
+	float compside = (board[7] + board[8] + board[9] + board[10] + board[11] + board[12])*0.45; //multiply by a constant
+	//I am multiplying by 0.45 because it gives more variation.
+	//this is also why floating point numbers are used, later converted to an int
+	float compmancala = (board[13]) * 3.45;//multiple by a higher constant because these are guaranteed pieces, since in mancala already
+	float comp = compside + compmancala; //find total for comp pieces
+	float difference_board = comp - human; 	//find the difference between the two, negative doesn't make a difference.
+	int valueofboard = int(difference_board + 0.5); //this basically rounds the floating point number to the nearest integer.
+	for (int i = 0; i <= 5; i++) { //for each possible move for human
+	checkempty = takeMove(board2, i, minOrMax); //see if you can land in an empty bin
+		if(checkempty){ //if you can land in an empty bin
+			int acrosslocation = findacross(i); //find the location of that
+			int acrosspieces = board2[acrosslocation]; //find how many pieces are across
+			//add the number of pieces across plus the one on your side to the vale of the board
+			valueofboard = valueofboard + ((acrosspieces*0.5)*-1);//since we want the comp to not have to go to this state, we multiple by -1, adding negative
 		}
-	else if(MAX == minOrMax){//comp
-		for (int i = 7; i <= 12; i++) { //for each possible move for comp
-		checkempty = takeMove(board2, i, minOrMax); //see if you can land in an empty bin
-			if(checkempty){//if you can land in an empty bin
-				int acrosslocation = findacross(i);//find the location of that
-				int acrosspieces = board2[acrosslocation];//find how many pieces are across
-				//add the number of pieces across plus the one on your side to the vale of the board
-				valueofboard = valueofboard + ((acrosspieces + 1));
-			}
+	}
+	for (int i = 7; i <= 12; i++) { //for each possible move for comp
+	checkempty = takeMove(board2, i, minOrMax); //see if you can land in an empty bin
+		if(checkempty){//if you can land in an empty bin
+			int acrosslocation = findacross(i);//find the location of that
+			int acrosspieces = board2[acrosslocation];//find how many pieces are across
+			//add the number of pieces across plus the one on your side to the vale of the board
+			valueofboard = valueofboard + ((acrosspieces*0.5)); //we want comp to go to this state, so multiply by constant only
 		}
 	}
 	return valueofboard; //regardless of if you can land in an empty bin, give back the value of the board.
@@ -510,8 +496,8 @@ int findacross(int ending){ //find across bin
 }
 int askforselection(int board[]){
 	int selection;
-	cout << "What move would you like to make?" << endl;
-	cout << "Please enter the slot number between 0 and 5 (inclusive), your mancala is to the right." << endl;
+	cout << "What move would you like to make? Your mancala is to the right." << endl;
+	cout << "Please enter either 0,1,2,3,4 or 5." << endl;
 	cin >> selection;
 	while (selection > 5 || selection < 0 || board[selection]==0){ //make sure valid selection
 		cout << "Wrong selection. Pit is either empty or out of range" << endl;
@@ -521,15 +507,7 @@ int askforselection(int board[]){
 	}
 	return selection;
 }
-int checkform(int board[], int choice){
-	if(choice == -1 || board[choice] == 0 || choice > 12 || choice < 7){
-			for(int i = 7; i <= 12; i++){
-				if(board[i] >= 1){
-					return i;
-					}
-				}
-		}
-}
+
 void printboard(int board[]){
 	cout << "       |  12  |  11  |  10  |   9  |   8  |   7  |" << endl;
 	cout << "________________________________________________________" << endl;
